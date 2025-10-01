@@ -5,12 +5,16 @@ Simple, copy‑paste browser console tool to extract subtitles/closed captions f
 ## Screenshot 
 <img src="images/youtube-transcript-extractor-screenshot.png" alt="Transcript Extractor UI" width="633">
 
-## Quick Start
+## Quick Start and how-to video
+
+
+https://github.com/user-attachments/assets/097b1fa8-c8b8-4bfb-80ed-bade00ae49cc
+
 
 - Open a YouTube video (watch page or Shorts).
 - Open DevTools console (`Cmd+Option+J` on macOS, `Ctrl+Shift+J` on Windows/Linux).
 - Open `console.js`, copy the entire file, paste into the browser console, then press Enter.
-- A compact panel appears. Click “Extract” to fetch the transcript, then use the buttons to copy or download.
+- A compact panel appears. Click “Extract”, if it doesn't load, click the CC button multiple times (toggle) to fetch the transcript, then use the buttons to copy or download.
 
 ## Features
 
@@ -21,7 +25,7 @@ Simple, copy‑paste browser console tool to extract subtitles/closed captions f
 
 ## Tips
 
-- If captions don’t load immediately, briefly play/pause the video or click the CC button shown above.
+- If captions don’t load immediately, click the CC button shown below.
 <img src="images/toggle-CC-button.png" alt="Toggle CC button" width="253">
 - Some videos only have auto‑generated (ASR) captions; quality varies.
 - Everything runs locally in your browser; nothing is uploaded.
