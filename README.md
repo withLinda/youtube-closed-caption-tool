@@ -26,7 +26,7 @@ https://github.com/user-attachments/assets/097b1fa8-c8b8-4bfb-80ed-bade00ae49cc
 ## Tips
 
 - If captions don’t load immediately, click the CC button shown below.
-<img src="images/toggle-CC-button.png" alt="Toggle CC button" width="253">
+- <img src="images/toggle-CC-button.png" alt="Toggle CC button" width="253">
 - Some videos only have auto‑generated (ASR) captions; quality varies.
 - Everything runs locally in your browser; nothing is uploaded.
 
