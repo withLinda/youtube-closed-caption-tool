@@ -19,6 +19,51 @@
   // Hint image uses hosted PNG from GitHub raw (loaded later in the UI)
   // ---------------------------------------------------------------------------
 
+  // --- Trusted Types helpers (for CSP with require-trusted-types-for 'script') ---
+  // We need a policy to assign to <script>.src as a TrustedScriptURL.
+  // If TT is unavailable, we degrade to a no-op shaper.
+  const TT = (() => {
+    try {
+      if (window.trustedTypes?.createPolicy) {
+        // Keep the policy name stable to avoid duplicates across re-runs.
+        // Browsers ignore re-creation with the same name but it's fine to try.
+        return window.trustedTypes.createPolicy('ytte_trusted_policy', {
+          createScriptURL: (url) => url,
+        });
+      }
+    } catch {}
+    // Fallback shim with same interface
+    return { createScriptURL: (url) => url };
+  })();
+
+  // If the host page uses a script nonce, reuse it for injected scripts.
+  function currentScriptNonce() {
+    try {
+      const s = document.querySelector('script[nonce]');
+      return s?.nonce || s?.getAttribute?.('nonce') || '';
+    } catch { return ''; }
+  }
+
+  async function loadScriptTrusted(url) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      // Satisfy Trusted Types (when enforced) by providing a TrustedScriptURL
+      // and satisfy CSP nonces if present on the page.
+      try {
+        s.src = TT.createScriptURL(url);
+      } catch (e) {
+        return reject(e);
+      }
+      const nonce = currentScriptNonce();
+      if (nonce) s.setAttribute('nonce', nonce);
+      s.async = true;
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('Failed to load ' + url));
+      document.head.appendChild(s);
+    });
+  }
+  // -------------------------------------------------------------------------
+
   // --- Trusted Types–safe SVG factory (no innerHTML) -----------------------
   function createIconSvg(pathD, viewBox = '0 0 24 24') {
     const svgNS = 'http://www.w3.org/2000/svg';
@@ -632,13 +677,8 @@
 
   async function ensureJsPDF() {
     if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
-    await new Promise((resolve, reject) => {
-      const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
-      s.onload = resolve;
-      s.onerror = () => reject(new Error('Failed to load jsPDF'));
-      document.head.appendChild(s);
-    });
+    // Load via TT-aware loader to satisfy CSP / Trusted Types.
+    await loadScriptTrusted('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
     await sleep(50);
     if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
     throw new Error('jsPDF not available after load');
