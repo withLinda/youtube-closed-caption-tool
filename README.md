@@ -2,7 +2,7 @@
 
 Simple, copy‑paste browser console tool to extract subtitles/closed captions from YouTube videos. It automatically enables CC, collects the transcript, and lets you copy or download it as TXT, Markdown, or PDF — all client‑side.
 
-![Toggle CC button](images/toggle-CC-button.png)
+<img src="images/toggle-CC-button.png" alt="Toggle CC button" width="253">
 
 ## Quick Start
 

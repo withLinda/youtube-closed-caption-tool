@@ -16,7 +16,7 @@
   const PLAYER_LOAD_MAX_WAIT_MS = 5000;
   const CC_CLICK_RETRY_INTERVAL_MS = 500;
   const PLAY_NUDGE_MS = 700; // ensure at least one render tick happens while playing
-  // Hint image uses PNG at images/toggle-CC-button.png (loaded later in the UI)
+  // Hint image uses hosted PNG from GitHub raw (loaded later in the UI)
   // ---------------------------------------------------------------------------
 
   // --- Trusted Types–safe SVG factory (no innerHTML) -----------------------
@@ -776,7 +776,7 @@
         #${SCRIPT_ID} .ytte-hint{background:#1D2529;border:1px dashed #3D484D;border-radius:8px;padding:10px;margin:8px 14px;display:block}
         #${SCRIPT_ID} .ytte-hint.is-hidden{display:none}
         #${SCRIPT_ID} .ytte-hint-title{font-size:13px;color:#E6EDF3;margin-bottom:8px;font-weight:500}
-        #${SCRIPT_ID} .ytte-hint img{width:100%;height:auto;border-radius:6px;display:block}
+        #${SCRIPT_ID} .ytte-hint img{width:33%;height:auto;border-radius:6px;display:block}
         #${SCRIPT_ID} .ytte-hint-note{font-size:12px;color:#9BA7AD;margin-top:6px}
         /* Responsive */
         @media (max-width: 768px){
@@ -843,8 +843,8 @@
     hintTitle.className = 'ytte-hint-title';
     hintTitle.textContent = 'Toggle CC button to trigger the caption';
     const hintImg = document.createElement('img');
-    // Use the static PNG from images/ instead of the old GIF
-    const CC_TOGGLE_IMAGE_URL = 'images/toggle-CC-button.png';
+    // Use hosted PNG on GitHub raw to avoid local path issues
+    const CC_TOGGLE_IMAGE_URL = 'https://raw.githubusercontent.com/withLinda/youtube-closed-caption-tool/refs/heads/main/images/toggle-CC-button.png';
     hintImg.src = CC_TOGGLE_IMAGE_URL;
     // Fallback to singular folder name if needed
     hintImg.addEventListener('error', () => {
