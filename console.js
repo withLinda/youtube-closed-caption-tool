@@ -15,7 +15,7 @@
   const OBSERVE_POLL_INTERVAL_MS = (typeof globalThis !== 'undefined' && typeof globalThis.OBSERVE_POLL_INTERVAL_MS !== 'undefined') ? globalThis.OBSERVE_POLL_INTERVAL_MS : 300;
   const PLAYER_LOAD_MAX_WAIT_MS = 5000;
   const CC_CLICK_RETRY_INTERVAL_MS = 500;
-  const PLAY_NUDGE_MS = 700; // ensure at least one render tick happens while playing
+  // Removed playback nudge timing (we no longer manipulate video playback)
   // Hint image uses hosted PNG from GitHub raw (loaded later in the UI)
   // ---------------------------------------------------------------------------
 
@@ -78,26 +78,7 @@
     return { player: getMoviePlayer(), video: getHtml5Video() };
   }
 
-  // “Nudge” playback to provoke a /api/timedtext request after CC is enabled.
-  // Briefly plays muted, then pauses to trigger track fetches.
-  async function nudgePlaybackForCaptions() {
-    const { video } = await waitForPlayerReady();
-    if (!video) return false;
-    try {
-      const wasPaused = video.paused;
-      const wasMuted = video.muted;
-      video.muted = true;
-      if (wasPaused) await video.play().catch(() => {});
-      await sleep(PLAY_NUDGE_MS);
-      if (wasPaused) {
-        try { video.pause(); } catch {}
-      }
-      video.muted = wasMuted;
-      return true;
-    } catch {
-      return false;
-    }
-  }
+  // Removed: playback nudge helper; we no longer play/pause/mute the video.
 
   function getCaptionsButton() {
     // Works both in default and theater modes
@@ -131,15 +112,13 @@
     // 1) Make sure player/video exist and wake captions module if possible
     const { player } = await waitForPlayerReady();
     if (player) tryLoadCaptionsModule(player);
-    // 2) Nudge playback so YouTube starts requesting timedtext endpoints
-    await nudgePlaybackForCaptions();
-    // 3) If API supports track selection, set desired language (best-effort)
+    // 2) If API supports track selection, set desired language (best-effort)
     try {
       if (player?.setOption && preferredLang) {
         player.setOption('captions', 'track', { languageCode: preferredLang });
       }
     } catch {}
-    // 4) Ensure CC button is ON, retrying a few times in case UI not mounted yet
+    // 3) Ensure CC button is ON, retrying a few times in case UI not mounted yet
     const deadline = Date.now() + OBSERVE_WAIT_MS;
     while (Date.now() < deadline) {
       const ok = await clickCaptionsButtonIfOff();
@@ -149,7 +128,7 @@
     return isCcOn();
   }
 
-  // Replace with a more robust implementation (loads module, nudges playback, clicks CC)
+  // Replace with a more robust implementation (loads module, clicks CC)
   async function setCaptionsEnabled(enable, { timeout = 4000, lang = PREFERRED_LANG } = {}) {
     if (!enable) {
       const btn = getCaptionsButton();
@@ -158,10 +137,9 @@
     }
     const ok = await robustEnableCaptions(lang);
     if (ok) return true;
-    // Last-ditch: try one more nudge + click within the provided timeout
+    // Last-ditch: retry clicking within the provided timeout (no playback manipulation)
     const deadline = Date.now() + timeout;
     while (Date.now() < deadline) {
-      await nudgePlaybackForCaptions();
       if (await clickCaptionsButtonIfOff()) return true;
       await sleep(250);
     }
@@ -1094,7 +1072,7 @@
     async function extractSelected() {
       try {
         let observedExact = (observedUrlInput.value || '').trim();
-        // IMPORTANT: try to ensure captions are actually ON before we attempt observation
+        // Ensure captions are actually ON before we attempt observation
         await robustEnableCaptions(PREFERRED_LANG);
         // Determine the best track to fall back to up front (selected → default).
         let trackToUse = null;
@@ -1106,13 +1084,12 @@
           if (!trackToUse) trackToUse = pickDefaultTrack(tracks);
         }
 
-        // If we have nothing observed yet, try a few enable/nudge/wait cycles.
+        // If we have nothing observed yet, try a few enable/wait cycles (no playback nudging).
         if (!observedExact) {
           let ccOk = false;
           const perAttemptWait = Math.max(OBSERVE_POLL_INTERVAL_MS, Math.floor(OBSERVE_WAIT_MS / Math.max(1, AUTO_ENABLE_CC_ATTEMPTS)));
           for (let i = 0; i < AUTO_ENABLE_CC_ATTEMPTS && !observedExact; i++) {
             ccOk = (await setCaptionsEnabled(true, { timeout: 4000, lang: PREFERRED_LANG })) || ccOk;
-            await nudgePlaybackForCaptions();
             observedExact = await waitForTimedtextObservedForVideo(isForThisVideo, { timeout: perAttemptWait, interval: OBSERVE_POLL_INTERVAL_MS });
           }
           if (observedExact) {
@@ -1208,7 +1185,6 @@
         for (let i = 0; i < AUTO_ENABLE_CC_ATTEMPTS; i++) {
           const ok = await setCaptionsEnabled(true, { timeout: 4000 });
           if (ok) {
-            await nudgePlaybackForCaptions();
             break;
           }
         }
