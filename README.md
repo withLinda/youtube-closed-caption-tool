@@ -4,6 +4,8 @@ Simple, copy‑paste browser console tool to extract subtitles/closed captions f
 
 <img src="images/toggle-CC-button.png" alt="Toggle CC button" width="253">
 
+<img src="images/youtube-transcript-extractor-screenshot.png" alt="Transcript Extractor UI" width="633">
+
 ## Quick Start
 
 - Open a YouTube video (watch page or Shorts).
